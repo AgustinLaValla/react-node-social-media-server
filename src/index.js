@@ -1,8 +1,8 @@
-const { server } = require('./server');
+const { server, app } = require('./server');
 const { green, magenta } = require('colors');
 const { connectDb } = require('./db');
 
-const port = server.get('port');
+const port = app.get('port');
 
 async function main() {
     try {

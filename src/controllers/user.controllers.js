@@ -18,9 +18,7 @@ const getUser = async (req, res) => {
         const user = await User.findById(id).populate('posts.postId');
         if (!user) return res.status(404).json({ ok: false, message: 'User not found' });
 
-        const { _id, username, email, posts, notifications } = user;
-
-        return res.json({ ok: true, user: { _id, username, email, posts, notifications } });
+        return res.json({ ok: true, user });
 
     } catch (error) {
         console.log(error);
@@ -45,7 +43,7 @@ const addUserDetails = async (req, res) => {
     if (location && location.trim().length > 0) userData.location = location;
 
     try {
-        const user = await User.findByIdAndUpdate(req.user._id, userData, { new: true });
+        const user = await User.findByIdAndUpdate(req.user._id, userData, { new: true }).populate('posts.postId');
 
         return res.json({ ok: true, message: 'User data successfully updated', user });
 

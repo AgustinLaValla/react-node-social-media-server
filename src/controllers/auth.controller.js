@@ -25,7 +25,7 @@ const register = async (req, res) => {
         const tokenBody = { username: user.username, email: user.email, _id:user._id };
         const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
 
-        return res.json({ ok: true, message: 'User Successfully created', user: tokenBody, token });
+        return res.json({ ok: true, message: 'User Successfully created', user, token });
 
     } catch (error) {
         console.log(error);
@@ -47,7 +47,7 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await User.findOne({ email: email.toLowerCase() });
+        const user = await User.findOne({ email: email.toLowerCase() }).populate('posts.postId');;
         if (!user) return res.status(404).json({ ok: false, message: 'User or password is wrong' });
 
         const isValid = await compare(password, user.password);
@@ -56,7 +56,7 @@ const login = async (req, res) => {
         const tokenBody = { username: user.username, email: user.email, _id:user._id };
         const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
 
-        return res.json({ ok: true, user: tokenBody, token });
+        return res.json({ ok: true, user, token });
 
     } catch (error) {
         console.log(error);

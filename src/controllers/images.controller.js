@@ -21,6 +21,12 @@ const changeProfileImage = async (req, res) => {
         const picId = result.public_id;
         const picVersion = result.version;
 
+        const user = await User.findById(req.user._id);
+
+        if (user.picId !== 'avatar_tmoqrv.png' && user.picVersion !== '1591573111') {
+            await cloudinary.uploader.destroy(user.picId);
+        }
+
         await User.findByIdAndUpdate(req.user._id, { picId, picVersion }, { new: true });
 
         return res.json({ ok: true, message: 'Profile picture successfully updated' });

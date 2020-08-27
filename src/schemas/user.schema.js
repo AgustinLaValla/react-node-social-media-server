@@ -27,6 +27,12 @@ const userSchema = new Schema({
     }
 }, { timestamps: true })
 
-
+//Hide the password to the final user
+userSchema.methods.toJSON = function() {
+    const user = this;
+    let userObject = user.toObject();
+    delete userObject.password;
+    return userObject;
+}
 
 module.exports = model('User', userSchema);
