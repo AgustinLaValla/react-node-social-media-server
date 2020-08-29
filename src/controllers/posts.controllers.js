@@ -39,7 +39,7 @@ const getPosts = async (req, res) => {
 const getPost = async (req, res) => {
     const { postId } = req.params;
     try {
-        const post = await Post.findById(postId).populate('comments.userId', 'username email picId picVersiob')
+        const post = await Post.findById(postId).populate('comments.userId', 'username email picId picVersion')
                                                 .populate('likes.userId', 'username picVersion picId')
                                                 .populate('userId', 'username picVersion picId');;
         if (!post) return res.status(404).json({ ok: false, message: 'Post Not Found' });

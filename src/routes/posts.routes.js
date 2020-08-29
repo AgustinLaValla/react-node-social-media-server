@@ -4,7 +4,7 @@ const { addPost, getPost, addLike, addComment, unlike, removeComment, deletePost
 
 const router = Router();
 
-router.get('/', validateToken, getPosts);
+router.get('/', getPosts);
 
 router.get('/:postId', validateToken, getPost);
 
