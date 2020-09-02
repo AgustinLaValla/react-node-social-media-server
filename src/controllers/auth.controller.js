@@ -3,26 +3,31 @@ const { hash, genSalt, compare } = require('bcrypt');
 const { sign } = require('jsonwebtoken');
 const { firstUpper } = require('../helpers/helpers');
 const { config } = require('dotenv');
+const { OAuth2Client } = require('google-auth-library');
+
 
 config();
+
+const CLIENT_ID = process.env.CLIENT_ID;
+
+const client = new OAuth2Client(CLIENT_ID);
+
 
 const SECRET = process.env.SECRET;
 
 const register = async (req, res) => {
 
-    console.log(SECRET);
-
     try {
         const { username, email, password } = req.body;
 
-        const user = new User({ username: firstUpper(username), email: email.toLowerCase(), password });
+        const user = new User({ username: firstUpper(username), email: email.toLowerCase(), password, google:false });
 
         const salt = await genSalt(10);
         user.password = await hash(password, salt);
 
         await user.save();
 
-        const tokenBody = { username: user.username, email: user.email, _id:user._id };
+        const tokenBody = { username: user.username, email: user.email, _id: user._id };
         const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
 
         return res.json({ ok: true, message: 'User Successfully created', user, token });
@@ -50,10 +55,15 @@ const login = async (req, res) => {
         const user = await User.findOne({ email: email.toLowerCase() }).populate('posts.postId');;
         if (!user) return res.status(404).json({ ok: false, message: 'User or password is wrong' });
 
+        if (user.google) return res.status(400).json({
+            ok: false,
+            message: 'You sould login with your google account. Click on the button bellow'
+        });
+
         const isValid = await compare(password, user.password);
         if (!isValid) return res.status(400).json({ ok: false, message: 'User or password is wrong' })
 
-        const tokenBody = { username: user.username, email: user.email, _id:user._id };
+        const tokenBody = { username: user.username, email: user.email, _id: user._id };
         const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
 
         return res.json({ ok: true, user, token });
@@ -66,4 +76,43 @@ const login = async (req, res) => {
 
 };
 
-module.exports = { register, login };
+async function verify(token) {
+    const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID
+    });
+    const payload = ticket.getPayload();
+    return {
+        username: payload.name,
+        email: payload.email,
+        google: true,
+        img: payload.picture
+    }
+};
+
+const googleSignIn = async (req, res) => {
+    const { token } = req.body;
+    try {
+        const googleUser = await verify(token);
+        const user = await User.findOne({ email: googleUser.email });
+        if (user) {
+            if (user.google === false) {
+                return res.status(400).json({ ok: false, message: 'You should login with email and password validation' });
+            }
+
+            const tokenBody = { username: user.username, email: user.email, _id: user._id };
+            const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
+            return res.json({ ok: true, user, token });
+        } else {
+            const newUser = await User.create({ username: googleUser.username, email: googleUser.email, google: true, img: googleUser.img });
+            const tokenBody = { username: newUser.username, email: newUser.email, _id: newUser._id };
+            const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
+            return res.json({ ok: true, user: newUser, token });
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ ok: false, message: 'Internal Server Error' });
+    }
+};
+
+module.exports = { register, login, googleSignIn };

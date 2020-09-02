@@ -1,12 +1,14 @@
 const { Router } = require('express');
 const { validateToken } = require('../middlewares/authorization');
-const { addPost, getPost, addLike, addComment, unlike, removeComment, deletePost, getPosts } = require('../controllers/posts.controllers');
+const { addPost, getPost, addLike, addComment, unlike, removeComment, deletePost, getPosts, getUserPosts } = require('../controllers/posts.controllers');
 
 const router = Router();
 
 router.get('/', getPosts);
 
 router.get('/:postId', validateToken, getPost);
+
+router.get('/get_user_posts/:userId', validateToken, getUserPosts);
 
 router.post('/add-post', validateToken, addPost);
 

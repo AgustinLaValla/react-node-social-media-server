@@ -15,7 +15,33 @@ const getUser = async (req, res) => {
 
     try {
 
-        const user = await User.findById(id).populate('posts.postId');
+        const user = await User.findById(id).populate({
+            path: 'posts',
+            populate: {
+                path: 'postId',
+                model: 'Post'
+            }
+        }).populate({
+            path: 'posts',
+            populate: {
+                path: 'postId',
+                populate: [
+                    {
+                        path: 'likes',
+                        populate: {
+                            path: 'userId',
+                            model: 'User',
+                            select:'_id'
+                        }
+                    },
+                    {
+                        path: 'userId',
+                        model: 'User'
+                    }
+                ]
+            }
+
+        });
         if (!user) return res.status(404).json({ ok: false, message: 'User not found' });
 
         return res.json({ ok: true, user });

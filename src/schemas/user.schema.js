@@ -9,6 +9,8 @@ const userSchema = new Schema({
     bio: { type: String, required: false },
     website: { type: String, required: false },
     location: { type: String, required: false },
+    google: { type: Boolean, required:true, default:false },
+    img: { type:String, required:false, default:null },
     posts: [
         { postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true } }
     ],

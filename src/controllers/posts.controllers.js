@@ -25,9 +25,9 @@ const addPost = async (req, res) => {
 const getPosts = async (req, res) => {
     try {
         const posts = await Post.find()
-            .populate('comments.userId', 'username picVersion picId')
-            .populate('likes.userId', 'username picVersion picId')
-            .populate('userId', 'username picVersion picId');
+            .populate('comments.userId', 'username picVersion picId img google')
+            .populate('likes.userId', 'username picVersion picId img google')
+            .populate('userId', 'username picVersion picId img google');
 
         return res.json({ ok: true, posts });
     } catch (error) {
@@ -39,15 +39,30 @@ const getPosts = async (req, res) => {
 const getPost = async (req, res) => {
     const { postId } = req.params;
     try {
-        const post = await Post.findById(postId).populate('comments.userId', 'username email picId picVersion')
-                                                .populate('likes.userId', 'username picVersion picId')
-                                                .populate('userId', 'username picVersion picId');;
+        const post = await Post.findById(postId).populate('comments.userId', 'username email picId picVersion img google')
+                                                .populate('likes.userId', 'username picVersion picId img google')
+                                                .populate('userId', 'username picVersion picId img google');
         if (!post) return res.status(404).json({ ok: false, message: 'Post Not Found' });
         return res.json({ ok: true, post });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ ok: false, message: 'Internal Server Error' });
     }
+};
+
+const getUserPosts = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const posts = await Post.find({userId}).populate('comments.userId', 'username email picId picVersion google img')
+                                                .populate('likes.userId', 'username picVersion picId google img')
+                                                .populate('userId', 'username picVersion picId google img');
+        return res.json({ok:true, posts});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ ok: false, message: 'Internal Server Error' });
+    }
+
 };
 
 const addLike = async (req, res) => {
@@ -79,6 +94,7 @@ const addLike = async (req, res) => {
                         postId: postId,
                         message: `${req.user.username} likes your post`,
                         type: 'like',
+                        createdAt: new Date()
                     }
                 }
             });
@@ -116,6 +132,7 @@ const addComment = async (req, res) => {
                     postId: postId,
                     message: `${req.user.username} has commented your post`,
                     type: 'comment',
+                    createdAt: new Date()
                 }
             }
         })
@@ -206,4 +223,4 @@ const deletePost = async (req, res) => {
 
 }
 
-module.exports = { addPost, addLike, getPost, getPosts, addComment, unlike, removeComment, deletePost };
+module.exports = { addPost, addLike, getPost, getPosts, getUserPosts, addComment, unlike, removeComment, deletePost };
