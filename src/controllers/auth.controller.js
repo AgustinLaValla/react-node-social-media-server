@@ -115,4 +115,11 @@ const googleSignIn = async (req, res) => {
     }
 };
 
-module.exports = { register, login, googleSignIn };
+
+const renovateToken = async (req, res) => {
+    const jwtPayload = { username: req.user.username, email: req.user.email, _id: req.user._id };
+    const token = await sign(jwtPayload, SECRET, { expiresIn: '4h' });
+    return res.json({ok:true, token});
+};
+
+module.exports = { register, login, googleSignIn, renovateToken };
