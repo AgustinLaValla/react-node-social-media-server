@@ -20,7 +20,12 @@ const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        const user = new User({ username: firstUpper(username), email: email.toLowerCase(), password, google:false });
+        const user = new User({
+            username: firstUpper(username),
+            email: email.toLowerCase(),
+            password,
+            google: false
+        });
 
         const salt = await genSalt(10);
         user.password = await hash(password, salt);
@@ -52,7 +57,7 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await User.findOne({ email: email.toLowerCase() }).populate('posts.postId');;
+        const user = await User.findOne({ email: email.toLowerCase() }).populate('posts.postId').populate('chatList.msgId');
         if (!user) return res.status(404).json({ ok: false, message: 'User or password is wrong' });
 
         if (user.google) return res.status(400).json({
@@ -94,17 +99,22 @@ const googleSignIn = async (req, res) => {
     const { token } = req.body;
     try {
         const googleUser = await verify(token);
-        const user = await User.findOne({ email: googleUser.email });
+        const user = await User.findOne({ email: googleUser.email }).populate('chatList.msgId');
         if (user) {
             if (user.google === false) {
                 return res.status(400).json({ ok: false, message: 'You should login with email and password validation' });
             }
 
             const tokenBody = { username: user.username, email: user.email, _id: user._id };
-            const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
+            const token = await sign(tokenBody, SECRET, { expiresIn: '4h' })
             return res.json({ ok: true, user, token });
         } else {
-            const newUser = await User.create({ username: googleUser.username, email: googleUser.email, google: true, img: googleUser.img });
+            const newUser = await User.create({
+                username: googleUser.username,
+                email: googleUser.email,
+                google: true,
+                img: googleUser.img
+            })
             const tokenBody = { username: newUser.username, email: newUser.email, _id: newUser._id };
             const token = await sign(tokenBody, SECRET, { expiresIn: '4h' });
             return res.json({ ok: true, user: newUser, token });
@@ -119,7 +129,7 @@ const googleSignIn = async (req, res) => {
 const renovateToken = async (req, res) => {
     const jwtPayload = { username: req.user.username, email: req.user.email, _id: req.user._id };
     const token = await sign(jwtPayload, SECRET, { expiresIn: '4h' });
-    return res.json({ok:true, token});
+    return res.json({ ok: true, token });
 };
 
 module.exports = { register, login, googleSignIn, renovateToken };

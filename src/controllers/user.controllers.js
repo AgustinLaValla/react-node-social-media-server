@@ -31,7 +31,7 @@ const getUser = async (req, res) => {
                         populate: {
                             path: 'userId',
                             model: 'User',
-                            select:'_id'
+                            select: '_id'
                         }
                     },
                     {
@@ -40,6 +40,19 @@ const getUser = async (req, res) => {
                     }
                 ]
             }
+
+        }).populate({
+            path: 'chatList',
+            populate: [
+                {
+                    path: 'receiverId',
+                    model: 'User'
+                },
+                {
+                    path: 'msgId',
+                    model:'Message'
+                }
+            ],
 
         });
         if (!user) return res.status(404).json({ ok: false, message: 'User not found' });

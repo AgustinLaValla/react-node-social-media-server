@@ -26,7 +26,13 @@ const userSchema = new Schema({
                 type: { type: String, enum: { values: ['like', 'comment'] } }
             }
         ]
-    }
+    },
+    chatList: [
+        {
+            receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+            msgId: { type: Schema.Types.ObjectId, ref: 'Message', required: true },
+        }
+    ]
 }, { timestamps: true })
 
 //Hide the password to the final user

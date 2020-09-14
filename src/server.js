@@ -5,9 +5,10 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const imageRoutes = require('./routes/images.routes');
 const postsRoutes = require('./routes/posts.routes');
+const messagesRotues = require('./routes/messages.routes');
 const cors = require('cors');
 const { socketStreams } = require('./sockets/streams');
-
+const { privateChat } = require('./sockets/private');
 
 const app = express();
 const server = http.createServer(app);
@@ -26,8 +27,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/posts', postsRoutes);
+app.use('/api/messages', messagesRotues);
 
 //socket streams
 socketStreams(io);
+privateChat(io);
 
 module.exports = { app, server };
