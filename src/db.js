@@ -4,9 +4,9 @@ const { config } = require('dotenv');
 
 config();
 
-const DB_URI = process.env.DB_URI;
+// const DB_URI = process.env.DB_URI;
 
-// const DB_URI = 'mongodb://localhost/react-social-app';
+const DB_URI = 'mongodb://localhost/react-social-app';
 
 const connectDb = async () => {
     try {

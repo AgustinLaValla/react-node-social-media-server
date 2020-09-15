@@ -68,6 +68,7 @@ const sendMessage = async (req, res) => {
                 conversationId: conversation._id,
                 sender: req.user.username,
                 receiver: receivername,
+                senderId,
                 receiverId,
                 messages: [
                     {
@@ -95,7 +96,7 @@ const sendMessage = async (req, res) => {
                 }
             });
 
-            if(req.user._id === receiverId) return;
+            if (req.user._id === receiverId) return;
 
             await User.updateOne({ _id: receiverId }, {
                 $push: {
@@ -127,16 +128,19 @@ const markMessagesAsRead = async (req, res) => {
 
         const msgs = await Message.findOne({
             $and: [
-                { 'messages.senderId': receiverId, 'messages.receiverId': senderId }
+                { 'messages.senderId': receiverId }, { 'messages.receiverId': senderId }
             ]
         });
 
         msgs.messages.forEach(async message => {
 
-            await Message.updateOne(
-                { 'messages._id': message._id },
-                { $set: { 'messages.$.isRead': true } }
-            );
+            if (String(message.receiverId) === req.user._id) {
+                await Message.updateOne(
+                    { 'messages._id': message._id },
+                    { $set: { 'messages.$.isRead': true } }
+                );
+            }
+
 
         });
 
@@ -147,4 +151,25 @@ const markMessagesAsRead = async (req, res) => {
     }
 };
 
-module.exports = { sendMessage, getMessages, markMessagesAsRead };
+const markOwnMessagesAsRead = async (req, res) => {
+    const { senderId, receiverId } = req.params;
+
+    if (senderId !== receiverId) return res.status(400).json({ ok: false, message: 'Users are diferent' });
+
+    const conversationId = await Conversation.findOne({
+        participants: { $elemMatch: { senderId: senderId, receiverId: receiverId } }
+    }).select('_id');
+
+    const msgs = await Message.findOne({ conversationId });
+
+    msgs.messages.forEach(async message => {
+
+        await Message.updateOne(
+            { 'messages._id': message._id },
+            { $set: { 'messages.$.isRead': true } }
+        );
+    });
+
+};
+
+module.exports = { sendMessage, getMessages, markMessagesAsRead, markOwnMessagesAsRead };

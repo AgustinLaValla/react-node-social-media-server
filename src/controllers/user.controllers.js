@@ -50,7 +50,7 @@ const getUser = async (req, res) => {
                 },
                 {
                     path: 'msgId',
-                    model:'Message'
+                    model: 'Message'
                 }
             ],
 
@@ -128,4 +128,15 @@ const markAllNotificationsAsRead = async (req, res) => {
     }
 }
 
-module.exports = { getUsers, getUser, addUserDetails, markNotificationAsRead, markAllNotificationsAsRead };
+const searchUsers = async (req, res) => {
+    const regex = new RegExp(req.params.search, 'i');
+    try {
+        const users = await User.find({username:regex});
+        return res.json({ ok: true, users });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ok:false, message:'Internal server Error'});
+    }
+}
+
+module.exports = { getUsers, getUser, addUserDetails, markNotificationAsRead, markAllNotificationsAsRead, searchUsers };

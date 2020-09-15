@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { getUsers ,getUser, addUserDetails, markNotificationAsRead, markAllNotificationsAsRead } = require('../controllers/user.controllers');
+const { getUsers ,getUser, addUserDetails, markNotificationAsRead, markAllNotificationsAsRead, searchUsers } = require('../controllers/user.controllers');
 const { validateToken } = require('../middlewares/authorization');
 
 const router = Router();
@@ -7,6 +7,8 @@ const router = Router();
 router.get('/', validateToken ,getUsers);
 
 router.get('/:id', validateToken ,getUser);
+
+router.get('/search/:search', searchUsers);
 
 router.put('/add-user-details/:id', validateToken, addUserDetails);
 

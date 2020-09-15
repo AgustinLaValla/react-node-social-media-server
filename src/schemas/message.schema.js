@@ -5,6 +5,7 @@ const messageSchema = new Schema({
     sender: { type: String, required: true },
     receiver: { type: String, required: true },
     receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    senderId:  { type: Schema.Types.ObjectId, ref: 'User', required: true },
     messages: [
         {
             senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
