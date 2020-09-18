@@ -16,7 +16,8 @@ const messageSchema = new Schema({
             isRead: { type: Boolean, default: false },
             createdAt: { type: Date, default: Date.now() }
         }
-    ]
+    ],
+    totalMessages: { type:Number, default:0 }
 });
 
 module.exports = model('Message', messageSchema);

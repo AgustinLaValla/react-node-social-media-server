@@ -23,13 +23,20 @@ const addPost = async (req, res) => {
 
 
 const getPosts = async (req, res) => {
+    let { limit } = req.query;
+    limit = parseInt(limit);
+
     try {
         const posts = await Post.find()
+            .limit(limit)
+            .sort({ createdAt: -1 })
             .populate('comments.userId', 'username picVersion picId img google')
             .populate('likes.userId', 'username picVersion picId img google')
             .populate('userId', 'username picVersion picId img google');
 
-        return res.json({ ok: true, posts });
+        const total = await Post.estimatedDocumentCount();
+
+        return res.json({ ok: true, posts, total });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ ok: false, message: 'Internal Server Error' });
@@ -40,8 +47,8 @@ const getPost = async (req, res) => {
     const { postId } = req.params;
     try {
         const post = await Post.findById(postId).populate('comments.userId', 'username email picId picVersion img google')
-                                                .populate('likes.userId', 'username picVersion picId img google')
-                                                .populate('userId', 'username picVersion picId img google');
+            .populate('likes.userId', 'username picVersion picId img google')
+            .populate('userId', 'username picVersion picId img google');
         if (!post) return res.status(404).json({ ok: false, message: 'Post Not Found' });
         return res.json({ ok: true, post });
     } catch (error) {
@@ -54,10 +61,10 @@ const getUserPosts = async (req, res) => {
     const { userId } = req.params;
 
     try {
-        const posts = await Post.find({userId}).populate('comments.userId', 'username email picId picVersion google img')
-                                                .populate('likes.userId', 'username picVersion picId google img')
-                                                .populate('userId', 'username picVersion picId google img');
-        return res.json({ok:true, posts});
+        const posts = await Post.find({ userId }).populate('comments.userId', 'username email picId picVersion google img')
+            .populate('likes.userId', 'username picVersion picId google img')
+            .populate('userId', 'username picVersion picId google img');
+        return res.json({ ok: true, posts });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ ok: false, message: 'Internal Server Error' });

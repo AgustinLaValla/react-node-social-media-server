@@ -4,6 +4,7 @@ const User = require('../schemas/user.schema');
 const { updateChatList } = require('../helpers/update-chat-list');
 
 const getMessages = async (req, res) => {
+    const limit = parseInt(req.query.limit) * -1;
     const { senderId, receiverId } = req.params;
     const conversationId = await Conversation.find().or([
         {
@@ -21,8 +22,15 @@ const getMessages = async (req, res) => {
     ]).select('_id');
 
     if (conversationId) {
-        const messages = await Message.find({ conversationId }).populate('messages.senderId', '_id username picVersion picId img google');
-        return res.json({ ok: true, messages })
+        const messages = await Message.find({ conversationId }, {
+            messages: { $slice: limit }
+        }).populate('messages.senderId', '_id username picVersion picId img google');
+        
+        const msgs = await Message.find({ conversationId });
+
+        const total = msgs[0].messages.length;
+
+        return res.json({ ok: true, messages, total })
     }
 
 
@@ -52,7 +60,8 @@ const sendMessage = async (req, res) => {
                         receivername,
                         body: message,
                         createdAt: new Date()
-                    }
+                    },
+                $inc: { totalMessages: 1 }
                 }
             });
             const messageSent = await Message.findOne({ conversationId: conversations[0]._id });
@@ -79,7 +88,8 @@ const sendMessage = async (req, res) => {
                         body: message,
                         createdAt: new Date()
                     }
-                ]
+                ],
+                totalMessages: 1
             });
 
             await User.updateOne({ _id: req.user._id }, {

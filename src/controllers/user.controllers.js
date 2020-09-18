@@ -1,8 +1,13 @@
 const User = require('../schemas/user.schema');
 
 const getUsers = async (req, res) => {
+    const  limit  = parseInt(req.query.limit);
     try {
-        return res.json({ ok: true, users: await User.find().populate('posts.postId') });
+        return res.json({
+            ok: true,
+            users: await User.find().limit(limit).populate('posts.postId'),
+            total: await User.estimatedDocumentCount()
+        });
     } catch (error) {
         console.log(error);
     }
@@ -131,11 +136,11 @@ const markAllNotificationsAsRead = async (req, res) => {
 const searchUsers = async (req, res) => {
     const regex = new RegExp(req.params.search, 'i');
     try {
-        const users = await User.find({username:regex});
+        const users = await User.find({ username: regex });
         return res.json({ ok: true, users });
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ok:false, message:'Internal server Error'});
+        return res.status(500).json({ ok: false, message: 'Internal server Error' });
     }
 }
 

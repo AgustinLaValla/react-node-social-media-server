@@ -4,7 +4,7 @@ const privateChat = (io) => {
         client.on('set_private_room', ({ userId }) =>
             client.join(userId));
 
-        client.on('refresh_chat', ({ senderId, receiverId }) => io.to(senderId).to(receiverId).emit('refresh_chat'));
+        client.on('refresh_chat', ({ senderId, receiverId }) => io.to(senderId).to(receiverId).emit('refresh_chat', { senderId, receiverId }));
 
         client.on('start_typing', (data) => io.to(data.receiver).emit('is_typing', { ...data, typing: true }));
         client.on('stop_typing', data => io.to(data.receiver).emit('is_typing', { ...data, typing: false }));
