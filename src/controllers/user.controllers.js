@@ -17,6 +17,7 @@ const getUsers = async (req, res) => {
 const getUser = async (req, res) => {
 
     const { id } = req.params;
+    console.log(id);
 
     try {
 
@@ -60,6 +61,8 @@ const getUser = async (req, res) => {
             ],
 
         });
+
+        console.log(user);
         if (!user) return res.status(404).json({ ok: false, message: 'User not found' });
 
         return res.json({ ok: true, user });

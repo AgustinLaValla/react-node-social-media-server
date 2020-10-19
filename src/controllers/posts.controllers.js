@@ -59,12 +59,16 @@ const getPost = async (req, res) => {
 
 const getUserPosts = async (req, res) => {
     const { userId } = req.params;
+    const limit = parseInt(req.query.limit) * -1;
 
     try {
-        const posts = await Post.find({ userId }).populate('comments.userId', 'username email picId picVersion google img')
+        const posts = await Post.find({ userId })
+            .limit(limit)
+            .populate('comments.userId', 'username email picId picVersion google img')
             .populate('likes.userId', 'username picVersion picId google img')
             .populate('userId', 'username picVersion picId google img');
-        return res.json({ ok: true, posts });
+
+        return res.json({ ok: true, posts, total: await Post.countDocuments({userId}) });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ ok: false, message: 'Internal Server Error' });

@@ -21,6 +21,9 @@ const privateChat = (io) => {
             io.to(userProfileRoom).emit('refresh_userVisited_post', { postId }));
 
         client.on('leaveProfileRoom', ({ userProfileRoom }) => client.leave(userProfileRoom));
+
+        client.on('refresh_visited_userData', ({ visitedUserId }) =>
+            io.to(visitedUserId).emit('refresh_visited_userData', { visitedUserId }));
     });
 };
 
